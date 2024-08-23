@@ -1,0 +1,38 @@
+body {
+  background-color: #e1e1e3;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.logo {
+  width: auto;
+  height: 120px;
+}
+
+.title {
+  font-family: sans-serif;
+  font-weight: bold;
+  color: #242425;
+  margin-top: 24px;
+  margin-bottom: 12px;
+  font-size: 48px;
+}
+
+.description {
+  font-family: sans-serif;
+  color: #48484a;
+  margin: 0;
+  margin-bottom: 32px;
+}
+
+.btn {
+  padding: 12px 24px;
+  text-decoration: none;
+  font-family: sans-serif;
+  background-color: #48484a;
+  color: white;
+  border-radius: 4px;
+}
