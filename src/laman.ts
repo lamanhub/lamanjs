@@ -30,8 +30,9 @@ laman
 laman
   .command("init")
   .description("Init LamanHub for Development")
-  .action(async () => {
-    await init();
+  .argument("<destination>", "Destination/App name")
+  .action(async (destination) => {
+    await init(destination);
   });
 
 laman.parse();
