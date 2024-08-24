@@ -1,7 +1,7 @@
 import express from "express";
 import { resolve } from "path";
-import edge from "./utils/edge.js";
-import parseTemplate from "./utils/parse-template.js";
+import edge from "../utils/edge.js";
+import parseTemplate from "../utils/parse-template.js";
 import { createServer } from "vite";
 
 export default async function server(mainDir: string, port: number = 3000) {

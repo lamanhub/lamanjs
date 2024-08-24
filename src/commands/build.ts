@@ -1,7 +1,7 @@
 import { build as viteBuild } from "vite";
 import fg from "fast-glob";
 import { resolve } from "path";
-import edge from "./utils/edge.js";
+import edge from "../utils/edge.js";
 import { cp, rename } from "fs";
 
 export default async function build() {

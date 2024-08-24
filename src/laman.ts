@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
-import server from "./server.js";
-import build from "./build.js";
-import init from "./init.js";
+import build from "./commands/build.js";
+import server from "./commands/server.js";
 
 const laman = new Command();
 
@@ -25,14 +24,6 @@ laman
   .description("Build LamanHub for Production")
   .action(async () => {
     await build();
-  });
-
-laman
-  .command("init")
-  .description("Init LamanHub for Development")
-  .argument("<destination>", "Destination/App name")
-  .action(async (destination) => {
-    await init(destination);
   });
 
 laman.parse();
