@@ -1,0 +1,14 @@
+{
+  "name": "lamanhub-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "postcss.config.js",
+  "scripts": {
+    "dev": "laman run",
+    "build": "laman build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module"
+}
