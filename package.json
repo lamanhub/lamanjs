@@ -1,6 +1,6 @@
 {
   "name": "@lamanhub/laman-cli",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A CLI app to develop LamanHub app",
   "main": "./dist/laman.js",
   "types": "./dist/laman.d.ts",
