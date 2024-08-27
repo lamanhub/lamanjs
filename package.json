@@ -31,6 +31,8 @@
     "typescript": "^5.5.3"
   },
   "dependencies": {
+    "@types/archiver": "^6.0.2",
+    "archiver": "^7.0.1",
     "commander": "^12.1.0",
     "degit": "^2.8.4",
     "express": "^4.19.2",
