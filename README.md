@@ -6,4 +6,4 @@
 
 ## Documentation
 
-The documentation is available on the [LamanHub](https://lamanhub.site)
+The documentation is available on the [LamanHub](https://lamanhub.site/docs)
