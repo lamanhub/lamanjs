@@ -1,7 +1,7 @@
 {
-  "name": "@lamanhub/laman-cli",
-  "version": "1.0.4",
-  "description": "A CLI app to develop LamanHub app",
+  "name": "laman",
+  "version": "1.0.0",
+  "description": "",
   "main": "./dist/laman.js",
   "types": "./dist/laman.d.ts",
   "scripts": {
@@ -14,13 +14,20 @@
   "files": [
     "dist"
   ],
-  "keywords": [],
+  "keywords": [
+    "web development",
+    "edge.js",
+    "vite",
+    "ssr",
+    "static site generator",
+    "template engine"
+  ],
   "author": "akbaraditamasp <akbaraditamasp@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/akbaraditamasp/laman-cli.git"
+    "url": "git+https://github.com/lamanhub/lamanjs.git"
   },
-  "homepage": "https://github.com/akbaraditamasp/laman-cli",
+  "homepage": "https://lamanjs.lamanhub.site",
   "license": "MIT",
   "type": "module",
   "devDependencies": {
