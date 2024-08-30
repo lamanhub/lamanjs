@@ -62,27 +62,22 @@ export default async function build() {
     resolve("dist", "public"),
     { recursive: true },
     () => {
-      const outputZip = createWriteStream(resolve("dist", "output.zip"));
-      const archive = archiver("zip", {
-        zlib: { level: 9 }, // Set level kompresi
-      });
-
-      outputZip.on("close", function () {
-        console.log(`Archive created: ${archive.pointer()} total bytes`);
-      });
-
-      archive.on("error", function (err) {
-        throw err;
-      });
-
-      archive.pipe(outputZip);
-
-      archive.glob("**/*", {
-        cwd: resolve("dist"),
-        ignore: ["output.zip"],
-      });
-
-      archive.finalize();
+      // const outputZip = createWriteStream(resolve("dist", "output.zip"));
+      // const archive = archiver("zip", {
+      //   zlib: { level: 9 }, // Set level kompresi
+      // });
+      // outputZip.on("close", function () {
+      //   console.log(`Archive created: ${archive.pointer()} total bytes`);
+      // });
+      // archive.on("error", function (err) {
+      //   throw err;
+      // });
+      // archive.pipe(outputZip);
+      // archive.glob("**/*", {
+      //   cwd: resolve("dist"),
+      //   ignore: ["output.zip"],
+      // });
+      // archive.finalize();
     }
   );
 }

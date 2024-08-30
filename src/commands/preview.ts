@@ -2,28 +2,22 @@ import express from "express";
 import { resolve } from "path";
 import edge from "../utils/edge.js";
 import parseTemplate from "../utils/parse-template.js";
-import { createServer } from "vite";
 
-export default async function server(port: number = 3000) {
+export default async function preview(port: number = 3000) {
   const app = express();
 
   edge.boot();
-  edge.get().mount(resolve("./src"));
-
-  const vite = await createServer({
-    server: { middlewareMode: true },
-    appType: "custom",
-  });
-  vite.watcher.on("all", (_ev, path) => {
-    if (path.endsWith(".edge")) {
-      vite.ws.send({ type: "full-reload" });
-    }
-  });
-
-  app.use(vite.middlewares);
+  edge.get().mount(resolve("./dist/src"));
 
   app.use(
-    express.static(resolve("public"), {
+    "/assets",
+    express.static(resolve("./dist/assets"), {
+      index: false,
+    })
+  );
+
+  app.use(
+    express.static(resolve("./dist/public"), {
       index: false,
     })
   );
@@ -35,7 +29,7 @@ export default async function server(port: number = 3000) {
       }
     )["0"].replace(/^\//, "");
 
-    const template = parseTemplate(requested, "./src");
+    const template = parseTemplate(requested, "./dist/src");
 
     let html: string = "";
 
@@ -49,7 +43,7 @@ export default async function server(port: number = 3000) {
         const statusCode = isNaN(Number((err as Error).message))
           ? 500
           : Number((err as Error).message);
-        const errorPage = parseTemplate(`${statusCode}` || "500", "./src");
+        const errorPage = parseTemplate(`${statusCode}` || "500", "./dist/src");
 
         if (errorPage) {
           html = await edge
@@ -63,14 +57,10 @@ export default async function server(port: number = 3000) {
       res.status(404);
     }
 
-    if (html) {
-      html = await vite.transformIndexHtml("", html);
-    }
-
     return res.type("html").send(html);
   });
 
   app.listen({ port }, () => {
-    console.log(`Laman.js development server is running on ` + port);
+    console.log(`Laman.js server is running on ` + port);
   });
 }
