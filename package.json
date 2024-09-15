@@ -38,12 +38,15 @@
     "typescript": "^5.5.3"
   },
   "dependencies": {
+    "@paralleldrive/cuid2": "^2.2.2",
     "@types/archiver": "^6.0.2",
     "archiver": "^7.0.1",
+    "axios": "^1.7.7",
     "commander": "^12.1.0",
     "degit": "^2.8.4",
     "express": "^4.19.2",
-    "fast-glob": "^3.3.2"
+    "fast-glob": "^3.3.2",
+    "open": "^10.1.0"
   },
   "peerDependencies": {
     "edge.js": "^6.0.2",

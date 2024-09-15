@@ -1,11 +1,11 @@
-import { build as viteBuild } from "vite";
 import fg from "fast-glob";
+import { cp, rename } from "fs";
 import { resolve } from "path";
+import { build as viteBuild } from "vite";
 import edge from "../utils/edge.js";
-import { cp, createWriteStream, rename } from "fs";
-import archiver from "archiver";
+import archive from "./archive.js";
 
-export default async function build() {
+export default async function build(archiveOutput: boolean = false) {
   edge.boot();
 
   const pages = fg.sync(["./src/**/*.edge"], {
@@ -62,22 +62,7 @@ export default async function build() {
     resolve("dist", "public"),
     { recursive: true },
     () => {
-      // const outputZip = createWriteStream(resolve("dist", "output.zip"));
-      // const archive = archiver("zip", {
-      //   zlib: { level: 9 }, // Set level kompresi
-      // });
-      // outputZip.on("close", function () {
-      //   console.log(`Archive created: ${archive.pointer()} total bytes`);
-      // });
-      // archive.on("error", function (err) {
-      //   throw err;
-      // });
-      // archive.pipe(outputZip);
-      // archive.glob("**/*", {
-      //   cwd: resolve("dist"),
-      //   ignore: ["output.zip"],
-      // });
-      // archive.finalize();
+      if (archiveOutput) archive();
     }
   );
 }

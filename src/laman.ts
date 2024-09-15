@@ -4,12 +4,13 @@ import { Command } from "commander";
 import build from "./commands/build.js";
 import server from "./commands/server.js";
 import preview from "./commands/preview.js";
+import deploy from "./commands/deploy.js";
 
 const laman = new Command();
 
 laman
   .name("laman")
-  .description("A CLI app to develop LamanHub app")
+  .description("A CLI app to develop Laman.js app")
   .version("1.0.0");
 
 laman
@@ -29,9 +30,17 @@ laman
 
 laman
   .command("build")
-  .description("Build LamanHub for Production")
+  .description("Build Laman.js for Production")
+  .option("-a, --archive", "Output archive")
+  .action(async ({ archive }) => {
+    await build(archive ? true : false);
+  });
+
+laman
+  .command("deploy")
+  .description("Deploy project to LamanHub")
   .action(async () => {
-    await build();
+    await deploy();
   });
 
 laman.parse();
