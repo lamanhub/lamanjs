@@ -2,12 +2,21 @@ import express from "express";
 import { resolve } from "path";
 import edge from "../utils/edge.js";
 import parseTemplate from "../utils/parse-template.js";
+import errorPage from "../utils/errorPage.js";
+import inject from "../utils/inject.js";
+import { existsSync } from "fs";
 
 export default async function preview(port: number = 3000) {
   const app = express();
 
   edge.boot();
   edge.get().mount(resolve("./dist/src"));
+  edge.get().global("errorPage", errorPage);
+  edge.get().global("inject", async () => {
+    if (!existsSync(resolve("./src", "inject.ts"))) return {};
+    const loc = inject(resolve("./src/inject.ts"));
+    return await import(loc);
+  });
 
   app.use(
     "/assets",
@@ -46,9 +55,7 @@ export default async function preview(port: number = 3000) {
         const errorPage = parseTemplate(`${statusCode}` || "500", "./dist/src");
 
         if (errorPage) {
-          html = await edge
-            .get()
-            .render(errorPage.path, { params: errorPage.params, req });
+          html = await edge.get().render(errorPage.path, { req });
         }
 
         res.status(statusCode);

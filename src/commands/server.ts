@@ -1,19 +1,29 @@
 import express from "express";
 import { resolve } from "path";
+import { createServer } from "vite";
 import edge from "../utils/edge.js";
 import parseTemplate from "../utils/parse-template.js";
-import { createServer } from "vite";
+import inject from "../utils/inject.js";
+import errorPage from "../utils/errorPage.js";
+import { existsSync } from "fs";
 
 export default async function server(port: number = 3000) {
   const app = express();
-
-  edge.boot();
-  edge.get().mount(resolve("./src"));
 
   const vite = await createServer({
     server: { middlewareMode: true },
     appType: "custom",
   });
+
+  edge.boot();
+  edge.get().mount(resolve("./src"));
+  edge.get().global("errorPage", errorPage);
+  edge.get().global("inject", async () => {
+    if (!existsSync(resolve("./src", "inject.ts"))) return {};
+    const loc = inject(resolve("./src/inject.ts"));
+    return await vite.ssrLoadModule(loc);
+  });
+
   vite.watcher.on("all", (_ev, path) => {
     if (path.endsWith(".edge")) {
       vite.ws.send({ type: "full-reload" });
@@ -52,9 +62,7 @@ export default async function server(port: number = 3000) {
         const errorPage = parseTemplate(`${statusCode}` || "500", "./src");
 
         if (errorPage) {
-          html = await edge
-            .get()
-            .render(errorPage.path, { params: errorPage.params, req });
+          html = await edge.get().render(errorPage.path, { req });
         }
 
         res.status(statusCode);
