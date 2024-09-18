@@ -1,5 +1,5 @@
 import fg from "fast-glob";
-import { cp, existsSync, rename } from "fs";
+import { cp, createWriteStream, existsSync, rename } from "fs";
 import { resolve } from "path";
 import { build as viteBuild } from "vite";
 import edge from "../utils/edge.js";
@@ -75,7 +75,8 @@ export default async function build(archiveOutput: boolean = false) {
     resolve("dist", "public"),
     { recursive: true },
     () => {
-      if (archiveOutput) archive();
+      if (archiveOutput)
+        archive(createWriteStream(resolve("dist", "output.zip")));
     }
   );
 }

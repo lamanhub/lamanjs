@@ -7,6 +7,8 @@ import { resolve } from "path";
 import axios from "axios";
 import { PassThrough } from "stream";
 import readline from "readline";
+import progress from "../utils/progress.js";
+import streamToBuffer from "../utils/stream-to-buffer.js";
 
 type Config = {
   id: number;
@@ -45,41 +47,29 @@ const getConfig = (deployConfigPath: string): Promise<Config> => {
   });
 };
 
-const streamToBuffer = (stream: PassThrough) => {
-  return new Promise<Buffer>((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    stream.on("data", (chunk) => chunks.push(chunk));
-    stream.on("end", () => resolve(Buffer.concat(chunks)));
-    stream.on("error", (err) => reject(err));
-  });
-};
+const uploading = async (deployKey: string, buffer: Buffer) => {
+  const loader = progress("Uploading");
+  return axios
+    .put("https://api.lamanhub.site/api/project/deploy", buffer, {
+      headers: {
+        "Content-Type": "application/octet-stream",
+        "LH-Deploy-Key": deployKey,
+      },
+      onUploadProgress: (progressEvent) => {
+        const loaded = Math.round(
+          (progressEvent.loaded * 100) /
+            (progressEvent.total || buffer.byteLength)!
+        );
 
-const uploading = async (deployKey: string, file: PassThrough) => {
-  const bufferFile = await streamToBuffer(file);
-
-  return axios.put("https://api.lamanhub.site/api/project/deploy", bufferFile, {
-    headers: {
-      "Content-Type": "application/octet-stream",
-      "LH-Deploy-Key": deployKey,
-    },
-    onUploadProgress: (progressEvent) => {
-      const progress = Math.round(
-        (progressEvent.loaded * 100) /
-          (progressEvent.total || bufferFile.byteLength)!
-      );
-
-      const barLength = 40;
-      const completedLength = Math.round((barLength * progress) / 100);
-      const bar =
-        "=".repeat(completedLength) + "-".repeat(barLength - completedLength);
-      readline.cursorTo(process.stdout, 0);
-      process.stdout.write(
-        progress === 100
-          ? "Archive uploaded successfully." + " ".repeat(barLength)
-          : `Uploading [${bar}] ${progress}%`
-      );
-    },
-  });
+        loader.load(loaded + "%");
+      },
+    })
+    .then(() => {
+      loader.succeed("Archive uploaded successfully.");
+    })
+    .catch((e) => {
+      console.log(e);
+    });
 };
 
 export default async function deploy() {
@@ -97,11 +87,14 @@ export default async function deploy() {
   console.log("Project Name  : " + config.name);
   console.log("Project Slug  : " + config.slug + "\n");
 
-  const build = (await archive(false)) as PassThrough;
+  const stream = new PassThrough();
+  const [buffer] = await Promise.all([streamToBuffer(stream), archive(stream)]);
 
-  await uploading(config.deployKey, build);
+  await uploading(config.deployKey, buffer).catch((e) => {
+    console.log(e);
+  });
   console.log(
-    "\n\nProject successfully deployed! You can manage your project from the dashboard:"
+    "\nProject successfully deployed! You can manage your project from the dashboard:"
   );
   console.log(`https://app.lamanhub.site/detail/${config.id}`);
 }
