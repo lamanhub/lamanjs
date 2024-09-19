@@ -4,8 +4,9 @@ import * as walk from "acorn-walk";
 import { existsSync, readFileSync } from "fs";
 import { resolve } from "path";
 import { Script, createContext } from "vm";
+import * as esbuild from "esbuild";
 
-export default function inject(location: string) {
+export default function inject(location: string, buildFirst = false) {
   const currentGlobal = global;
   if (!existsSync(resolve("./dist", "inject.js"))) return () => ({});
 
@@ -59,7 +60,21 @@ export default function inject(location: string) {
   });
 
   return () => {
-    const userCode = readFileSync(location, "utf-8");
+    let userCode: string;
+
+    if (buildFirst) {
+      userCode = esbuild.buildSync({
+        entryPoints: [location],
+        bundle: true,
+        platform: "browser",
+        inject: [],
+        outfile: resolve("./dist", "inject.js"),
+        format: "cjs",
+        write: false,
+      }).outputFiles[0].text;
+    } else {
+      userCode = readFileSync(location, "utf-8");
+    }
 
     const sandboxes = {
       ...currentGlobal,

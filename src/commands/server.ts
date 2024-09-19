@@ -18,7 +18,7 @@ export default async function server(port: number = 3000) {
   edge.boot();
   edge.get().mount(resolve("./src"));
   edge.get().global("errorPage", errorPage);
-  edge.get().global("inject", inject(resolve("./src", "inject.ts"))());
+  edge.get().global("inject", inject(resolve("./src", "inject.ts"), true)());
 
   vite.watcher.on("all", (_ev, path) => {
     if (path.endsWith(".edge")) {
