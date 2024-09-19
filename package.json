@@ -1,6 +1,6 @@
 {
   "name": "lamanjs",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Simplifying Modern Web Development with Edge-Powered Elegance",
   "main": "./dist/laman.js",
   "types": "./dist/laman.d.ts",
