@@ -1,10 +1,10 @@
 import express from "express";
+import { existsSync } from "fs";
 import { resolve } from "path";
 import edge from "../utils/edge.js";
-import parseTemplate from "../utils/parse-template.js";
 import errorPage from "../utils/errorPage.js";
 import inject from "../utils/inject.js";
-import { existsSync } from "fs";
+import parseTemplate from "../utils/parse-template.js";
 
 export default async function preview(port: number = 3000) {
   const app = express();
@@ -13,8 +13,8 @@ export default async function preview(port: number = 3000) {
   edge.get().mount(resolve("./dist/src"));
   edge.get().global("errorPage", errorPage);
   edge.get().global("inject", async () => {
-    if (!existsSync(resolve("./src", "inject.ts"))) return {};
-    const loc = inject(resolve("./src/inject.ts"));
+    if (!existsSync(resolve("./dist", "inject.js"))) return {};
+    const loc = inject(resolve("./dist/inject.js"));
     return await import(loc);
   });
 
@@ -32,6 +32,7 @@ export default async function preview(port: number = 3000) {
   );
 
   app.get("*", async (req, res) => {
+    res.header("Content-Type", "text/html");
     const requested = (
       req.params as {
         "0": string;
@@ -46,25 +47,36 @@ export default async function preview(port: number = 3000) {
       req.params = template.params;
 
       try {
-        html = await edge.get().render(template.path, { req });
+        html = await edge.get().render(template.path, {
+          req,
+          setHeader: (...params: Parameters<typeof res.header>) => {
+            res.header(...params);
+            return "";
+          },
+        });
       } catch (err) {
         console.log(err);
         const statusCode = isNaN(Number((err as Error).message))
           ? 500
           : Number((err as Error).message);
+        res.status(statusCode);
         const errorPage = parseTemplate(`${statusCode}` || "500", "./dist/src");
 
         if (errorPage) {
-          html = await edge.get().render(errorPage.path, { req });
+          html = await edge.get().render(errorPage.path, {
+            req,
+            setHeader: (...params: Parameters<typeof res.header>) => {
+              res.header(...params);
+              return "";
+            },
+          });
         }
-
-        res.status(statusCode);
       }
     } else {
       res.status(404);
     }
 
-    return res.type("html").send(html);
+    return res.send(html);
   });
 
   app.listen({ port }, () => {

@@ -39,6 +39,7 @@ export default async function server(port: number = 3000) {
   );
 
   app.get("*", async (req, res) => {
+    res.header("Content-Type", "text/html");
     const requested = (
       req.params as {
         "0": string;
@@ -53,29 +54,40 @@ export default async function server(port: number = 3000) {
       req.params = template.params;
 
       try {
-        html = await edge.get().render(template.path, { req });
+        html = await edge.get().render(template.path, {
+          req,
+          setHeader: (...params: Parameters<typeof res.header>) => {
+            res.header(...params);
+            return "";
+          },
+        });
       } catch (err) {
         console.log(err);
         const statusCode = isNaN(Number((err as Error).message))
           ? 500
           : Number((err as Error).message);
+        res.status(statusCode);
         const errorPage = parseTemplate(`${statusCode}` || "500", "./src");
 
         if (errorPage) {
-          html = await edge.get().render(errorPage.path, { req });
+          html = await edge.get().render(errorPage.path, {
+            req,
+            setHeader: (...params: Parameters<typeof res.header>) => {
+              res.header(...params);
+              return "";
+            },
+          });
         }
-
-        res.status(statusCode);
       }
     } else {
       res.status(404);
     }
 
-    if (html) {
+    if (html && res.getHeader("Content-Type") === "text/html") {
       html = await vite.transformIndexHtml("", html);
     }
 
-    return res.type("html").send(html);
+    return res.send(html);
   });
 
   app.listen({ port }, () => {
