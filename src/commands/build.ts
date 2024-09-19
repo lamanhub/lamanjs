@@ -65,8 +65,7 @@ export default async function build(archiveOutput: boolean = false) {
       platform: "browser",
       inject: [],
       outfile: resolve("./dist", "inject.js"),
-      format: "esm",
-      target: ["es6"],
+      format: "cjs",
     });
   }
 

@@ -1,22 +1,20 @@
 import express from "express";
-import { existsSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { resolve } from "path";
 import edge from "../utils/edge.js";
 import errorPage from "../utils/errorPage.js";
 import inject from "../utils/inject.js";
 import parseTemplate from "../utils/parse-template.js";
+import { Script, createContext } from "vm";
 
 export default async function preview(port: number = 3000) {
+  const currentGlobal = global;
   const app = express();
 
   edge.boot();
   edge.get().mount(resolve("./dist/src"));
   edge.get().global("errorPage", errorPage);
-  edge.get().global("inject", async () => {
-    if (!existsSync(resolve("./dist", "inject.js"))) return {};
-    const loc = inject(resolve("./dist/inject.js"));
-    return await import(loc);
-  });
+  edge.get().global("inject", inject(resolve("./dist", "inject.js"))());
 
   app.use(
     "/assets",
