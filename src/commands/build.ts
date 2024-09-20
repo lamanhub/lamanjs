@@ -66,6 +66,7 @@ export default async function build(archiveOutput: boolean = false) {
       inject: [],
       outfile: resolve("./dist", "inject.js"),
       format: "cjs",
+      jsx: "automatic",
     });
   }
 

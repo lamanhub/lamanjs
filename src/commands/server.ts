@@ -1,11 +1,10 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import { resolve } from "path";
 import { createServer } from "vite";
 import edge from "../utils/edge.js";
-import parseTemplate from "../utils/parse-template.js";
-import inject from "../utils/inject.js";
 import errorPage from "../utils/errorPage.js";
-import { existsSync } from "fs";
+import inject from "../utils/inject.js";
+import parseTemplate from "../utils/parse-template.js";
 
 export default async function server(port: number = 3000) {
   const app = express();
@@ -20,19 +19,27 @@ export default async function server(port: number = 3000) {
   edge.get().global("errorPage", errorPage);
   edge.get().global("inject", inject(resolve("./src", "inject.ts"), true)());
 
+  const render = (path: string, req: Request, res: Response) => {
+    res.sendFile = () => {};
+    return edge.get().render(path, {
+      req,
+      res,
+    });
+  };
+
   vite.watcher.on("all", (_ev, path) => {
-    if (path.endsWith(".edge")) {
+    if (
+      path.endsWith(".edge") ||
+      path.endsWith(".ts") ||
+      path.endsWith(".tsx")
+    ) {
       vite.ws.send({ type: "full-reload" });
     }
+
+    edge.get().global("inject", inject(resolve("./src", "inject.ts"), true)());
   });
 
   app.use(vite.middlewares);
-
-  app.use(
-    express.static(resolve("public"), {
-      index: false,
-    })
-  );
 
   app.get("*", async (req, res) => {
     res.header("Content-Type", "text/html");
@@ -50,13 +57,7 @@ export default async function server(port: number = 3000) {
       req.params = template.params;
 
       try {
-        html = await edge.get().render(template.path, {
-          req,
-          setHeader: (...params: Parameters<typeof res.header>) => {
-            res.header(...params);
-            return "";
-          },
-        });
+        html = await render(template.path, req, res);
       } catch (err) {
         console.log(err);
         const statusCode = isNaN(Number((err as Error).message))
@@ -68,19 +69,24 @@ export default async function server(port: number = 3000) {
         if (errorPage) {
           html = await edge.get().render(errorPage.path, {
             req,
-            setHeader: (...params: Parameters<typeof res.header>) => {
-              res.header(...params);
-              return "";
-            },
+            res,
           });
         }
       }
     } else {
       res.status(404);
+      const errorPage = parseTemplate("404", "./src");
+
+      if (errorPage) {
+        html = await edge.get().render(errorPage.path, {
+          req,
+          res,
+        });
+      }
     }
 
-    if (html && res.getHeader("Content-Type") === "text/html") {
-      html = await vite.transformIndexHtml("", html);
+    if (html) {
+      html = await vite.transformIndexHtml(req.originalUrl, html);
     }
 
     return res.send(html);

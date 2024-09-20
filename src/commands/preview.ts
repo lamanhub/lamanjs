@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import { existsSync, readFileSync } from "fs";
 import { resolve } from "path";
 import edge from "../utils/edge.js";
@@ -15,6 +15,14 @@ export default async function preview(port: number = 3000) {
   edge.get().mount(resolve("./dist/src"));
   edge.get().global("errorPage", errorPage);
   edge.get().global("inject", inject(resolve("./dist", "inject.js"))());
+
+  const render = (path: string, req: Request, res: Response) => {
+    res.sendFile = () => {};
+    return edge.get().render(path, {
+      req,
+      res,
+    });
+  };
 
   app.use(
     "/assets",
@@ -45,13 +53,7 @@ export default async function preview(port: number = 3000) {
       req.params = template.params;
 
       try {
-        html = await edge.get().render(template.path, {
-          req,
-          setHeader: (...params: Parameters<typeof res.header>) => {
-            res.header(...params);
-            return "";
-          },
-        });
+        html = await render(template.path, req, res);
       } catch (err) {
         console.log(err);
         const statusCode = isNaN(Number((err as Error).message))
@@ -61,17 +63,16 @@ export default async function preview(port: number = 3000) {
         const errorPage = parseTemplate(`${statusCode}` || "500", "./dist/src");
 
         if (errorPage) {
-          html = await edge.get().render(errorPage.path, {
-            req,
-            setHeader: (...params: Parameters<typeof res.header>) => {
-              res.header(...params);
-              return "";
-            },
-          });
+          html = await render(errorPage.path, req, res);
         }
       }
     } else {
       res.status(404);
+      const errorPage = parseTemplate("400", "./dist/src");
+
+      if (errorPage) {
+        html = await render(errorPage.path, req, res);
+      }
     }
 
     return res.send(html);

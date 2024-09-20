@@ -71,6 +71,7 @@ export default function inject(location: string, buildFirst = false) {
         outfile: resolve("./dist", "inject.js"),
         format: "cjs",
         write: false,
+        jsx: "automatic",
       }).outputFiles[0].text;
     } else {
       userCode = readFileSync(location, "utf-8");
