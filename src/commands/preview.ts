@@ -1,14 +1,11 @@
 import express, { Request, Response } from "express";
-import { existsSync, readFileSync } from "fs";
 import { resolve } from "path";
 import edge from "../utils/edge.js";
 import errorPage from "../utils/errorPage.js";
 import inject from "../utils/inject.js";
 import parseTemplate from "../utils/parse-template.js";
-import { Script, createContext } from "vm";
 
 export default async function preview(port: number = 3000) {
-  const currentGlobal = global;
   const app = express();
 
   edge.boot();

@@ -1,14 +1,13 @@
 import { Parser } from "acorn";
 import tsPlugin from "acorn-typescript";
 import * as walk from "acorn-walk";
-import { existsSync, readFileSync } from "fs";
-import { resolve } from "path";
-import { Script, createContext } from "vm";
 import * as esbuild from "esbuild";
+import { existsSync, readFileSync } from "fs";
+import { Script, createContext } from "vm";
 
 export default function inject(location: string, buildFirst = false) {
   const currentGlobal = global;
-  if (!existsSync(resolve("./dist", "inject.js"))) return () => ({});
+  if (!existsSync(location)) return () => ({});
 
   const dangerousNodeApis = [
     "fs",
@@ -68,7 +67,6 @@ export default function inject(location: string, buildFirst = false) {
         bundle: true,
         platform: "browser",
         inject: [],
-        outfile: resolve("./dist", "inject.js"),
         format: "cjs",
         write: false,
         jsx: "automatic",
