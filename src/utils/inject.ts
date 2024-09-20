@@ -76,22 +76,21 @@ export default function inject(location: string, buildFirst = false) {
       userCode = readFileSync(location, "utf-8");
     }
 
-    const sandboxes = {
-      ...currentGlobal,
-      globalThis: undefined,
-      require: undefined,
-      process: {},
-      module: { exports: {} },
-    };
+    const sandboxes: any = {};
 
-    // Membuat konteks eksekusi berdasarkan sandbox yang dibuat
-    const context = createContext(sandboxes);
+    for (const key of Reflect.ownKeys(global)) {
+      sandboxes[key] = currentGlobal[key as keyof typeof globalThis];
+    }
 
-    // Membuat dan menjalankan script di dalam VM
+    sandboxes.require = undefined;
+    sandboxes.module = { exports: {} };
+    sandboxes.process = undefined;
+
+    Object.freeze(sandboxes);
+
     const script = new Script(userCode);
-    script.runInContext(context);
+    script.runInContext(createContext(sandboxes));
 
-    // Mengembalikan hasil ekspor untuk diakses pengguna
     return sandboxes.module.exports;
   };
 }
