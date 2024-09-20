@@ -85,7 +85,7 @@ export default async function server(port: number = 3000) {
       }
     }
 
-    if (html) {
+    if (html && res.get("Content-Type")?.split(";")[0] === "text/html") {
       html = await vite.transformIndexHtml(req.originalUrl, html);
     }
 
