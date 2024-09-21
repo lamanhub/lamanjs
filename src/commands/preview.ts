@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express, { Request, Response } from "express";
 import { resolve } from "path";
 import edge from "../utils/edge.js";
@@ -10,6 +11,7 @@ export default async function preview(port: number = 3000) {
 
   edge.boot();
   edge.get().mount(resolve("./dist/src"));
+  edge.get().global("env", process.env);
   edge.get().global("errorPage", errorPage);
   edge.get().global("inject", inject(resolve("./dist", "inject.js"))());
 

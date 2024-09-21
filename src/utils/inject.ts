@@ -83,7 +83,9 @@ export default function inject(location: string, buildFirst = false) {
 
     sandboxes.require = undefined;
     sandboxes.module = { exports: {} };
-    sandboxes.process = undefined;
+    sandboxes.process = {
+      env: process.env,
+    };
 
     Object.freeze(sandboxes);
 

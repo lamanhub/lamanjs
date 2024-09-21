@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express, { Request, Response } from "express";
 import { resolve } from "path";
 import { createServer } from "vite";
@@ -16,6 +17,7 @@ export default async function server(port: number = 3000) {
 
   edge.boot();
   edge.get().mount(resolve("./src"));
+  edge.get().global("env", process.env);
   edge.get().global("errorPage", errorPage);
   edge.get().global("inject", inject(resolve("./src", "inject.ts"), true)());
 
