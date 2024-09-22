@@ -1,10 +1,9 @@
 import fg from "fast-glob";
-import { cp, createWriteStream, existsSync, rename } from "fs";
+import { cp, createWriteStream, existsSync, rename, writeFileSync } from "fs";
 import { resolve } from "path";
 import { build as viteBuild } from "vite";
 import edge from "../utils/edge.js";
 import archive from "./archive.js";
-import * as esbuild from "esbuild";
 
 export default async function build(archiveOutput: boolean = false) {
   edge.boot();
@@ -59,14 +58,24 @@ export default async function build(archiveOutput: boolean = false) {
   }
 
   if (existsSync(resolve("./src", "inject.ts"))) {
-    await esbuild.build({
-      entryPoints: [resolve("./src", "inject.ts")],
-      bundle: true,
-      platform: "browser",
-      inject: [],
-      outfile: resolve("./dist", "inject.js"),
-      format: "cjs",
-      jsx: "automatic",
+    await viteBuild({
+      ssr: {
+        noExternal: true,
+        target: "webworker",
+      },
+      build: {
+        ssr: resolve("./src", "inject.ts"),
+        rollupOptions: {
+          output: {
+            format: "cjs",
+            exports: "auto",
+          },
+        },
+        write: false,
+        copyPublicDir: false,
+      },
+    }).then((data: any) => {
+      writeFileSync(resolve("./dist", "inject.js"), data.output[0].code);
     });
   }
 

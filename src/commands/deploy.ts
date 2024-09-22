@@ -1,14 +1,13 @@
 import { createId } from "@paralleldrive/cuid2";
+import axios from "axios";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 import { createConnection } from "net";
 import open from "open";
-import archive from "./archive.js";
-import { existsSync, readFileSync, writeFileSync } from "fs";
 import { resolve } from "path";
-import axios from "axios";
 import { PassThrough } from "stream";
-import readline from "readline";
 import progress from "../utils/progress.js";
 import streamToBuffer from "../utils/stream-to-buffer.js";
+import archive from "./archive.js";
 
 type Config = {
   id: number;

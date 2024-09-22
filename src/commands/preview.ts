@@ -13,7 +13,7 @@ export default async function preview(port: number = 3000) {
   edge.get().mount(resolve("./dist/src"));
   edge.get().global("env", process.env);
   edge.get().global("errorPage", errorPage);
-  edge.get().global("inject", inject(resolve("./dist", "inject.js"))());
+  edge.get().global("inject", await inject());
 
   const render = (path: string, req: Request, res: Response) => {
     res.sendFile = () => {};
