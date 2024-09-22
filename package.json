@@ -44,7 +44,6 @@
     "axios": "^1.7.7",
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
-    "esbuild": "^0.23.1",
     "express": "^4.19.2",
     "fast-glob": "^3.3.2",
     "open": "^10.1.0"
