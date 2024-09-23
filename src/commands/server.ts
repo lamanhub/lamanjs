@@ -12,6 +12,7 @@ import parseTemplate from "../utils/parse-template.js";
 export default async function server(port: number = 3000) {
   const app = express();
   const server = http.createServer(app);
+  let injectionUpdate = false;
 
   const vite = await createServer({
     server: {
@@ -42,6 +43,21 @@ export default async function server(port: number = 3000) {
   edge.get().global("env", process.env);
   edge.get().global("errorPage", errorPage);
   edge.get().global("inject", await inject(runtime));
+
+  vite.ws.on("connection", async () => {
+    if (injectionUpdate) {
+      injectionUpdate = false;
+
+      const inject = await vite.moduleGraph.getModuleByUrl("/src/inject.ts");
+      if (inject) {
+        await vite.reloadModule(inject);
+      }
+    }
+  });
+
+  vite.ws.on("inject:update", () => {
+    injectionUpdate = true;
+  });
 
   const render = (path: string, req: Request, res: Response) => {
     res.sendFile = () => {};
