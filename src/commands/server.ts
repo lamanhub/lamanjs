@@ -1,7 +1,9 @@
 import "dotenv/config";
 import express, { Request, Response } from "express";
+import * as http from "http";
 import { resolve } from "path";
-import { createServer } from "vite";
+import { ServerHMRConnector, createServer } from "vite";
+import { ESModulesRunner, ViteRuntime } from "vite/runtime";
 import edge from "../utils/edge.js";
 import errorPage from "../utils/errorPage.js";
 import inject from "../utils/inject.js";
@@ -9,17 +11,37 @@ import parseTemplate from "../utils/parse-template.js";
 
 export default async function server(port: number = 3000) {
   const app = express();
+  const server = http.createServer(app);
 
   const vite = await createServer({
-    server: { middlewareMode: true },
+    server: {
+      middlewareMode: {
+        server,
+      },
+      proxy: {
+        "/ws": {
+          target: "ws://localhost:3000",
+          ws: true,
+        },
+      },
+    },
     appType: "custom",
   });
+  const hmrConnection = new ServerHMRConnector(vite);
+  const runtime = new ViteRuntime(
+    {
+      root: vite.config.root,
+      fetchModule: vite.ssrFetchModule,
+      hmr: { connection: hmrConnection },
+    },
+    new ESModulesRunner()
+  );
 
   edge.boot();
   edge.get().mount(resolve("./src"));
   edge.get().global("env", process.env);
   edge.get().global("errorPage", errorPage);
-  edge.get().global("inject", await inject(vite));
+  edge.get().global("inject", await inject(runtime));
 
   const render = (path: string, req: Request, res: Response) => {
     res.sendFile = () => {};
@@ -30,15 +52,9 @@ export default async function server(port: number = 3000) {
   };
 
   vite.watcher.on("all", async (_ev, path) => {
-    if (
-      path.endsWith(".edge") ||
-      path.endsWith(".ts") ||
-      path.endsWith(".tsx")
-    ) {
+    if (path.endsWith(".edge")) {
       vite.ws.send({ type: "full-reload" });
     }
-
-    edge.get().global("inject", await inject(vite));
   });
 
   app.use(vite.middlewares);
@@ -94,7 +110,7 @@ export default async function server(port: number = 3000) {
     return res.send(html);
   });
 
-  app.listen({ port }, () => {
+  server.listen({ port }, () => {
     console.log(`Laman.js development server is running on ` + port);
   });
 }

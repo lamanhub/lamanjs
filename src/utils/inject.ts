@@ -1,15 +1,15 @@
 import { existsSync, readFileSync } from "fs";
 import { resolve } from "path";
-import { ViteDevServer } from "vite";
+import { ViteRuntime } from "vite/runtime";
 import { Script, createContext } from "vm";
 
-export default async function inject(vite?: ViteDevServer) {
-  const path = vite
+export default async function inject(runtime?: ViteRuntime) {
+  const path = runtime
     ? resolve("src", "inject.ts")
     : resolve("dist", "inject.js");
-  if (!existsSync(path)) return {};
+  if (!existsSync(path)) return () => ({});
 
-  if (!vite) {
+  if (!runtime) {
     const currentGlobal = global;
     const sandboxes: any = {};
 
@@ -28,8 +28,10 @@ export default async function inject(vite?: ViteDevServer) {
     const script = new Script(readFileSync(path, "utf-8"));
     script.runInContext(createContext(sandboxes));
 
-    return sandboxes.exports;
+    return () => sandboxes.exports;
   }
 
-  return await vite.ssrLoadModule(path);
+  await runtime.executeEntrypoint(path);
+
+  return () => runtime.moduleCache.get(path).exports;
 }
