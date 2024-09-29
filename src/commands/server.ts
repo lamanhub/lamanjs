@@ -11,6 +11,7 @@ import parseTemplate from "../utils/parse-template.js";
 
 export default async function server(port: number = 3000) {
   const app = express();
+  app.disable("x-powered-by");
   const server = http.createServer(app);
   let injectionUpdate = false;
 

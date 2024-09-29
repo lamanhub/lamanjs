@@ -8,6 +8,7 @@ import parseTemplate from "../utils/parse-template.js";
 
 export default async function preview(port: number = 3000) {
   const app = express();
+  app.disable("x-powered-by");
 
   edge.boot();
   edge.get().mount(resolve("./dist/src"));
